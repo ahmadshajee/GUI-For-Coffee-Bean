@@ -1,0 +1,150 @@
+import sys
+from PyQt5.QtWidgets import (
+    QApplication,
+    QWidget,
+    QLabel,
+    QLineEdit,
+    QPushButton,
+    QVBoxLayout,
+    QFileDialog,
+    QMessageBox,
+)
+from PyQt5.QtGui import QIcon, QFont
+
+class FileUploadApp(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.init_ui()
+
+    def init_ui(self):
+        # Set the window title and size
+        self.setWindowTitle("Coffee Beans Detection")
+        self.setGeometry(100, 100, 400, 300)
+
+        # Set the background color for the main window
+        self.setStyleSheet("background-color: #BDFF7A;")  # Apply background color to the window
+
+        # Create layout
+        layout = QVBoxLayout()
+
+        # Create labels and input fields
+        self.epoch_input = QLineEdit(self)
+        self.valid_path_input = QLineEdit(self)
+        self.test_path_input = QLineEdit(self)
+        self.train_path_input = QLineEdit(self)
+        self.file_path_input = QLineEdit(self)
+
+        # Set dimensions for input fields
+        input_width = 300
+        input_height = 40
+
+        # Set fixed size for the input fields
+        self.epoch_input.setFixedSize(input_width, input_height)
+        self.valid_path_input.setFixedSize(input_width, input_height)
+        self.test_path_input.setFixedSize(input_width, input_height)
+        self.train_path_input.setFixedSize(input_width, input_height)
+        self.file_path_input.setFixedSize(input_width, input_height)
+
+        # Set styles for input fields
+        input_style = "background-color: #FBFBFB; color: black; border-radius: 10px; padding: 5px; font-size: 16px;"
+        self.epoch_input.setStyleSheet(input_style)
+        self.valid_path_input.setStyleSheet(input_style)
+        self.test_path_input.setStyleSheet(input_style)
+        self.train_path_input.setStyleSheet(input_style)
+        self.file_path_input.setStyleSheet(input_style)
+
+        # Create and style labels
+        labels = ["Epoch:", "Valid Path:", "Test Path:", "Train Path:", "File Path:"]
+        for label_text in labels:
+            label = QLabel(label_text, self)
+            font = QFont()
+            font.setPointSize(16)  # Increase label font size
+            label.setFont(font)
+            layout.addWidget(label)
+
+            if label_text == "Epoch:":
+                layout.addWidget(self.epoch_input)
+            elif label_text == "Valid Path:":
+                layout.addWidget(self.valid_path_input)
+            elif label_text == "Test Path:":
+                layout.addWidget(self.test_path_input)
+            elif label_text == "Train Path:":
+                layout.addWidget(self.train_path_input)
+            elif label_text == "File Path:":
+                layout.addWidget(self.file_path_input)
+
+        # Create buttons
+        upload_button = QPushButton("Upload File", self)
+        start_button = QPushButton("Start Detection", self)
+
+        # Load icon and set it to the upload button
+        upload_button.setIcon(QIcon("icon Folder.png"))  # Ensure the correct path for your icon
+        upload_button.setIconSize(upload_button.size() * 0.5 * 1.5)  # Scale the icon to be 50% bigger
+
+        # Set fixed sizes for both buttons
+        button_width = input_width  # Same width as the input fields
+        button_height = 80  # Keep button height at 80 pixels
+        upload_button.setFixedSize(button_width, button_height)
+        start_button.setFixedSize(button_width, button_height)
+
+        # Add styles for buttons
+        button_style = "color: black; border-radius: 10px; padding: 10px; font-size: 16px;"
+        upload_button.setStyleSheet(f"{button_style} border: 2px solid #4CAF50; background-color: #f0f0f0;")  # Green border
+        start_button.setStyleSheet(f"{button_style} border: 2px solid #2196F3; background-color: #f0f0f0;")  # Blue border
+
+        # Connect buttons to their functions
+        upload_button.clicked.connect(self.upload_file)
+        start_button.clicked.connect(self.start_detection)
+
+        # Add buttons to layout
+        layout.addWidget(upload_button)
+        layout.addWidget(start_button)
+
+        # Set layout for the main window
+        self.setLayout(layout)
+
+    def upload_file(self):
+        # Open file dialog to select a file
+        options = QFileDialog.Options()
+        file_path, _ = QFileDialog.getOpenFileName(self, "Select File", "", "All Files (*);;Text Files (*.txt)", options=options)
+        if file_path:
+            self.file_path_input.setText(file_path)  # Set the path in the QLineEdit
+            self.process_file(file_path)  # Process the selected file to read the first three lines
+
+    def process_file(self, file_path):
+        try:
+            with open(file_path, 'r') as f:
+                lines = f.readlines()
+                if len(lines) >= 3:
+                    self.train_path_input.setText(lines[0].strip())  # Set first line to train path
+                    self.valid_path_input.setText(lines[1].strip())  # Set second line to valid path
+                    self.test_path_input.setText(lines[2].strip())  # Set third line to test path
+                else:
+                    QMessageBox.warning(self, "Warning", "The selected file does not contain enough lines.")
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"An error occurred while reading the file: {str(e)}")
+
+    def start_detection(self):
+        # Retrieve input values
+        epoch = self.epoch_input.text()
+        valid_path = self.valid_path_input.text()
+        test_path = self.test_path_input.text()
+        train_path = self.train_path_input.text()
+        uploaded_file = self.file_path_input.text()
+
+        # Here you would implement your detection logic
+        QMessageBox.information(self, "Info",
+            f"Starting detection with:\n"
+            f"Epoch: {epoch}\n"
+            f"Valid Path: {valid_path}\n"
+            f"Test Path: {test_path}\n"
+            f"Train Path: {train_path}\n"
+            f"Uploaded File: {uploaded_file}"
+        )
+
+# Main execution
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    ex = FileUploadApp()
+    ex.show()
+    sys.exit(app.exec_())
